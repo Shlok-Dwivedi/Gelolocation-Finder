@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Precise Coordinate Finder</title>
+    <style>
+        /* Basic styling for a clean, modern look */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+        h1 {
+            color: #1c1e21;
+            margin-bottom: 15px;
+        }
+        p {
+            color: #606770;
+            margin-bottom: 30px;
+        }
+        /* Styling for the main button */
+        .button {
+            background-color: #1877f2;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s;
+            width: 100%;
+        }
+        .button:hover {
+            background-color: #166fe5;
+        }
+        .button:active {
+            transform: scale(0.98);
+        }
+        .button:disabled {
+            background-color: #a0bdf5;
+            cursor: not-allowed;
+        }
+        /* Styling for the results display */
+        #results {
+            margin-top: 30px;
+            text-align: left;
+            background-color: #f7f8fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #dddfe2;
+        }
+        .coord-item {
+            margin-bottom: 15px;
+        }
+        .coord-item strong {
+            display: block;
+            color: #1c1e21;
+            margin-bottom: 5px;
+        }
+        .coord-value {
+            font-family: 'Menlo', 'Monaco', monospace;
+            font-size: 16px;
+            color: #333;
+            background-color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            word-wrap: break-word;
+        }
+        /* Styling for the copy button */
+        #copy-btn {
+            margin-top: 20px;
+            background-color: #42b72a;
+            display: none; /* Hidden by default */
+        }
+        #copy-btn:hover {
+            background-color: #36a420;
+        }
+        /* Status message styling */
+        #status {
+            margin-top: 20px;
+            color: #606770;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Coordinate Finder</h1>
+        <p>Tap the button below to get your precise GPS coordinates.</p>
+        
+        <!-- The button to start the process -->
+        <button class="button" id="find-btn">Find My Coordinates</button>
+
+        <!-- The status message area -->
+        <div id="status"></div>
+
+        <!-- The results will be displayed here -->
+        <div id="results" style="display:none;">
+            <div class="coord-item">
+                <strong>Latitude:</strong>
+                <div class="coord-value" id="latitude"></div>
+            </div>
+            <div class="coord-item">
+                <strong>Longitude:</strong>
+                <div class="coord-value" id="longitude"></div>
+            </div>
+             <div class="coord-item">
+                <strong>Accuracy:</strong>
+                <div class="coord-value" id="accuracy"></div>
+            </div>
+            
+            <!-- The button to copy the results -->
+            <button class="button" id="copy-btn">Copy Coordinates</button>
+        </div>
+    </div>
+
+    <script>
+        // Get references to the HTML elements
+        const findBtn = document.getElementById('find-btn');
+        const copyBtn = document.getElementById('copy-btn');
+        const resultsDiv = document.getElementById('results');
+        const statusDiv = document.getElementById('status');
+        const latEl = document.getElementById('latitude');
+        const lonEl = document.getElementById('longitude');
+        const accEl = document.getElementById('accuracy');
+
+        // This function is called when the "Find My Coordinates" button is clicked
+        findBtn.addEventListener('click', () => {
+            // Check if Geolocation is supported by the browser
+            if (!navigator.geolocation) {
+                statusDiv.textContent = 'Geolocation is not supported by your browser.';
+                return;
+            }
+
+            // Disable the button and show a "loading" message
+            findBtn.disabled = true;
+            statusDiv.textContent = 'Getting your location... Please allow permission.';
+            resultsDiv.style.display = 'none';
+            copyBtn.style.display = 'none';
+
+            // Request the location with high accuracy enabled
+            const options = {
+                enableHighAccuracy: true, // This is key for precision
+                timeout: 15000,           // Stop trying after 15 seconds
+                maximumAge: 0             // Don't use a cached position
+            };
+
+            // This is the main Geolocation API call
+            navigator.geolocation.getCurrentPosition(success, error, options);
+        });
+
+        // This function runs if the location is successfully found
+        function success(position) {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+            const accuracy = position.coords.accuracy;
+
+            // Display the coordinates, formatted to 9 decimal places
+            latEl.textContent = latitude.toFixed(9);
+            lonEl.textContent = longitude.toFixed(9);
+            accEl.textContent = `Within ${accuracy.toFixed(1)} meters`;
+
+            // Show the results and the copy button
+            resultsDiv.style.display = 'block';
+            copyBtn.style.display = 'block';
+            statusDiv.textContent = 'Location found!';
+            findBtn.disabled = false; // Re-enable the find button
+        }
+
+        // This function runs if there's an error
+        function error(err) {
+            statusDiv.textContent = `Error: ${err.message}`;
+            findBtn.disabled = false; // Re-enable the find button
+        }
+
+        // This function is called when the "Copy Coordinates" button is clicked
+        copyBtn.addEventListener('click', () => {
+            const textToCopy = `Latitude: ${latEl.textContent}\nLongitude: ${lonEl.textContent}`;
+            
+            // Use the modern Clipboard API if available, with a fallback
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    copyBtn.textContent = 'Copied!';
+                    setTimeout(() => { copyBtn.textContent = 'Copy Coordinates'; }, 2000);
+                });
+            } else {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = textToCopy;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                textArea.remove();
+                copyBtn.textContent = 'Copied!';
+                setTimeout(() => { copyBtn.textContent = 'Copy Coordinates'; }, 2000);
+            }
+        });
+    </script>
+
+</body>
+</html>
