@@ -122,6 +122,10 @@
                 <strong>Longitude:</strong>
                 <div class="coord-value" id="longitude"></div>
             </div>
+            <div class="coord-item">
+                <strong>Elevation:</strong>
+                <div class="coord-value" id="elevation"></div>
+            </div>
              <div class="coord-item">
                 <strong>Accuracy:</strong>
                 <div class="coord-value" id="accuracy"></div>
@@ -140,6 +144,7 @@
         const statusDiv = document.getElementById('status');
         const latEl = document.getElementById('latitude');
         const lonEl = document.getElementById('longitude');
+        const eleEl = document.getElementById('elevation'); // New element for elevation
         const accEl = document.getElementById('accuracy');
 
         // This function is called when the "Find My Coordinates" button is clicked
@@ -172,10 +177,19 @@
             const latitude = position.coords.latitude;
             const longitude = position.coords.longitude;
             const accuracy = position.coords.accuracy;
+            const elevation = position.coords.altitude; // Get elevation
 
             // Display the coordinates, formatted to 9 decimal places
             latEl.textContent = latitude.toFixed(9);
             lonEl.textContent = longitude.toFixed(9);
+            
+            // Display elevation if available, otherwise show a message
+            if (elevation !== null) {
+                eleEl.textContent = `${elevation.toFixed(2)} meters`;
+            } else {
+                eleEl.textContent = 'Not available';
+            }
+
             accEl.textContent = `Within ${accuracy.toFixed(1)} meters`;
 
             // Show the results and the copy button
@@ -193,7 +207,8 @@
 
         // This function is called when the "Copy Coordinates" button is clicked
         copyBtn.addEventListener('click', () => {
-            const textToCopy = `Latitude: ${latEl.textContent}\nLongitude: ${lonEl.textContent}`;
+            // Updated text to include elevation
+            const textToCopy = `Latitude: ${latEl.textContent}\nLongitude: ${lonEl.textContent}\nElevation: ${eleEl.textContent}`;
             
             // Use the modern Clipboard API if available, with a fallback
             if (navigator.clipboard) {
